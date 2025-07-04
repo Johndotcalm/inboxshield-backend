@@ -30,5 +30,11 @@ ${text}`;
 
   const data = await response.json();
   const message = data.choices?.[0]?.message?.content || 'No response.';
-  return NextResponse.json({ result: message });
+  return new NextResponse(JSON.stringify({ result: message }), {
+  headers: {
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json'
+  }
+});
+
 }
