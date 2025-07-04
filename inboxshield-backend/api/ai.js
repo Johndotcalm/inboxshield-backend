@@ -26,13 +26,11 @@ export default async function handler(req) {
   const data = await response.json();
   const message = data.choices?.[0]?.message?.content || 'No response.';
 
-  return NextResponse.json(
-    { result: message },
-    {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',
-      },
-    }
-  );
+  return new Response(JSON.stringify({ result: message }), {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+  });
 }
