@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 
 export const config = {
@@ -9,12 +8,8 @@ export default async function handler(req) {
   const { text, type } = await req.json();
 
   const prompt = type === 'summarize'
-    ? `Summarize this email in 1-2 sentences:
-
-${text}`
-    : `Write a short, professional reply to this email:
-
-${text}`;
+    ? `Summarize this email in 1-2 sentences:\n\n${text}`
+    : `Write a short, professional reply to this email:\n\n${text}`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -30,11 +25,14 @@ ${text}`;
 
   const data = await response.json();
   const message = data.choices?.[0]?.message?.content || 'No response.';
-  return new NextResponse(JSON.stringify({ result: message }), {
-  headers: {
-    'Access-Control-Allow-Origin': '*',
-    'Content-Type': 'application/json'
-  }
-});
 
+  return NextResponse.json(
+    { result: message },
+    {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',
+      },
+    }
+  );
 }
