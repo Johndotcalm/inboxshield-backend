@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 
-export async function POST(req) {
+export const config = { runtime: 'edge' };
+
+export default async function handler(req) {
   const { text, type } = await req.json();
 
   const prompt =
@@ -8,14 +10,15 @@ export async function POST(req) {
       ? `Summarize this email in 1-2 sentences:\n\n${text}`
       : `Write a short, professional reply to this email:\n\n${text}`;
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://inboxshield-backend.vercel.app', // required by OpenRouter
     },
     body: JSON.stringify({
-      model: 'gpt-3.5-turbo',
+      model: 'openrouter/openai/gpt-3.5-turbo',
       messages: [{ role: 'user', content: prompt }],
     }),
   });
@@ -23,21 +26,10 @@ export async function POST(req) {
   const data = await response.json();
   const message = data.choices?.[0]?.message?.content || 'No response.';
 
-  const res = NextResponse.json({ result: message });
-
-  // 👇 Add CORS headers to allow Chrome extension requests
-  res.headers.set('Access-Control-Allow-Origin', '*');
-  res.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.headers.set('Access-Control-Allow-Headers', 'Content-Type');
-
-  return res;
-}
-
-// Handle OPTIONS preflight requests
-export async function OPTIONS() {
-  const res = new Response(null, { status: 204 });
-  res.headers.set('Access-Control-Allow-Origin', '*');
-  res.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.headers.set('Access-Control-Allow-Headers', 'Content-Type');
-  return res;
+  return NextResponse.json({ result: message }, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json',
+    },
+  });
 }
